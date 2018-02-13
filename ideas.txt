@@ -1,0 +1,12 @@
+1st idea:
+All your social media feeds in one place; twitter, facebook, instagram, etc. feeds, all parsed and combined to make it into a single feed.
+You'll be able to to post via the webpage/app into all of your feeds or whichever ones you choose. 
+Possible other features: a profile that shows information from all the different social media websites, at the end of the day the app/page could show things according to what you did all day on social media.
+APIs: Facebook, Twitter, Instagram, etc.
+Database: Used to store users' access tokens, profile information if we go with that idea.
+
+
+2nd idea:
+Web application (temporarily calling it StudyBuddy) where the user would enter in their location, and the site will go through all coffee shops in a designated area (ie. 5 mile radius) and look at yelp ratings and figure out and tell the user the coffee shops’ best qualities so they can make a decision if they want to go to it or not. The user then can rate it after (to add more information to the database) and the user can have a profile that will list all of the places they’ve been to (show their favorites at the top). 
+
+ 
