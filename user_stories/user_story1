@@ -1,1 +1,14 @@
-First user story
+As a new user, I want to create an account so that I can use the app.
+
+a. The user would first create a username and password.
+THINGS THAT COULD GO WRONG
+  i. Username is taken: they have to select a different username
+  ii. Password is too short: they have to lengthen their password
+  iii. Email is invalid: they have to enter a valid email.
+THINGS THAT COULD GO RIGHT
+  i. User & pass are accepted and they get sent to next screen.
+b. Then, the user can link social media accounts to their account (OAUTH?)
+THINGS THAT COULD GO WRONG
+  i. They linked the wrong social media: they should be able to unlink it.
+THINGS THAT COULD GO RIGHT
+  i. They choose the right social media account, and then the next social media site is shown until the correct ones are added and then they are taken to the ‘feed page’.
