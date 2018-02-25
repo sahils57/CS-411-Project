@@ -1,0 +1,8 @@
+As a logged in user, I want to be able to post to my feed so that I can share text and photos to my friends.
+
+a. User clicks post to enter text / image / video then selects which social media to post to.
+THINGS THAT COULD GO WRONG
+  i. The user choose the wrong social media site to post to: There will be a delete button in the top right hand corner to delete the post.
+  ii. User only enters text and tries to post to instagram: blocked from choosing instagram because you need an image to post to instagram.
+THINGS THAT COULD GO RIGHT
+  i. They post the right text/image/video to the right social media account.
