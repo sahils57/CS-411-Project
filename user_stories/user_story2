@@ -1,0 +1,12 @@
+As a logged in user, I want to view my feed so that I can see social media updates.
+
+a. The user is shown posts from various social media on the web app.
+THINGS THAT COULD GO WRONG
+  i. Run out of posts to see: click show more to load more posts.
+THINGS THAT COULD GO RIGHT
+  i. The user sees and scrolls through all of their friends social media posts they wanted to see.
+b. The user can interact with social media posts by liking/commenting.
+THINGS THAT COULD GO WRONG
+  i. Accidentally like/comment: should be able to undo liking/commenting.
+THINGS THAT COULD GO RIGHT
+  i. The user correctly likes and comments on a specific post.

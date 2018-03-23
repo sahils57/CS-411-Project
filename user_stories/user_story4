@@ -1,0 +1,20 @@
+As a user of this app, I want to be able to change my settings so that I can choose to view or stop viewing different social media websites.
+
+a. User clicks settings button and is shown their account information
+		THINGS THAT COULD GO WRONG
+    i. They accidentally clicked the settings button: they can just close out of the settings page or hit back.
+		THINGS THAT COULD GO RIGHT
+    i. They can change their email or password.
+b. User can deselect or add social media websites to include in their feed.
+		THINGS THAT COULD GO WRONG
+    i. The user selected the wrong social media account to get rid of: There will always be an option to add in any missing social media accounts so the user can easily add in it again.
+		THINGS THAT COULD GO RIGHT
+    i. The user selects the right social media to delete/add: the appropriate stories are removed/added to/from the feed.
+c. User can choose whether the feed is organized by chronological or top stories.
+    THINGS THAT COULD GO WRONG
+    i. The user selects the wrong choice: They should be able to deselect the choice.
+		THINGS THAT COULD GO RIGHT
+    i. They select the their preference and it gets implemented to their feed
+
+		
+
