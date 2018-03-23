@@ -23,7 +23,6 @@ a = api.GetHomeTimeline(contributor_details = True)
 home_timeline = [[i.text, i.user.screen_name] for i in a]
 #home_timeline_users = [i.user for i in a]
 
-
 b = api.GetUserTimeline(screen_name='nhuang54')
 user_timeline = [i.text for i in b]
 
