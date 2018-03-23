@@ -20,7 +20,7 @@ api = twitter.Api(consumer_key=consumer_key,
 credentials = api.VerifyCredentials()
 
 a = api.GetHomeTimeline(contributor_details = True)
-home_timeline = [i.text for i in a]
+home_timeline = [[i.text, i.user.screen_name] for i in a]
 #home_timeline_users = [i.user for i in a]
 
 print(home_timeline)
