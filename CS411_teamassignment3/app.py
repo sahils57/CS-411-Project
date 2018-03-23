@@ -26,10 +26,11 @@ home_timeline = [[i.text, i.user.screen_name] for i in a]
 b = api.GetUserTimeline(screen_name='nhuang54')
 user_timeline = [i.text for i in b]
 
+c = api.GetFriends()
+follows = [i.screen_name for i in c]
 
 
-statuses = api.GetUserTimeline(screen_name='yell0wu')
-status = [s.text for s in statuses]
+#print(following)
 
 Articles = Articles()
 
@@ -61,6 +62,9 @@ def hometimeline():
 def usertimeline():
     return render_template('usertimeline.html', tweets = user_timeline)
 
+@app.route('/twitter/following')
+def following():
+    return render_template('following.html', follows = follows)
 
 if __name__ == '__main__':
     app.run(debug=True)
