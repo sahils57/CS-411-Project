@@ -20,10 +20,9 @@ api = twitter.Api(consumer_key=consumer_key,
 credentials = api.VerifyCredentials()
 
 a = api.GetHomeTimeline(contributor_details = True)
-home_timeline = [i.text for i in a]
+home_timeline = [[i.text, i.user.screen_name] for i in a]
 #home_timeline_users = [i.user for i in a]
 
-print(home_timeline)
 
 b = api.GetUserTimeline(screen_name='nhuang54')
 user_timeline = [i.text for i in b]
@@ -57,11 +56,11 @@ def twitter():
 
 @app.route('/twitter/hometimeline')
 def hometimeline():
-    return render_template('twitter_sections.html', tweets= home_timeline)
+    return render_template('hometimeline.html', tweets= home_timeline)
 
 @app.route('/twitter/usertimeline')
 def usertimeline():
-    return render_template('twitter_sections.html', tweets = user_timeline)
+    return render_template('usertimeline.html', tweets = user_timeline)
 
 
 if __name__ == '__main__':
