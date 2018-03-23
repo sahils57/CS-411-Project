@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 
 {% block body %}
+<h1> User's timeline </h1>
 <ul class="list-group">
   {% for tweet in tweets %}
     <li class="list-group-item">@{{tweet[1]}}: {{tweet[0]}}</li>
