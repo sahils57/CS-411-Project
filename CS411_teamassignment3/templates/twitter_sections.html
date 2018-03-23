@@ -1,9 +1,0 @@
-{% extends 'layout.html' %}
-
-{% block body %}
-<ul class="list-group">
-  {% for tweet in tweets %}
-    <li class="list-group-item">@{{tweet[1]}}: {{tweet[0]}}</li>
-  {% endfor %}
-</ul>
-{% endblock %}
