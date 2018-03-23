@@ -1,0 +1,4 @@
+Hey guys, be sure to install these with pip before running or it won't work.
+
+pip install flask
+pip install python-twitter
