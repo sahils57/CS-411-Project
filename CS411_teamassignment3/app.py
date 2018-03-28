@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect
 from data import Articles
 import twitter
 
@@ -17,7 +17,7 @@ api = twitter.Api(consumer_key=consumer_key,
  access_token_secret=access_secret)
 
 #print(api.VerifyCredentials())
-credentials = api.VerifyCredentials()
+#credentials = api.VerifyCredentials()
 
 a = api.GetHomeTimeline(contributor_details = True)
 home_timeline = [[i.text, i.user.screen_name] for i in a]
@@ -29,6 +29,9 @@ user_timeline = [i.text for i in b]
 c = api.GetFriends()
 follows = [i.screen_name for i in c]
 
+def searchApi(keyword):
+    result = [[i.text, i.user.screen_name] for i in a if keyword.lower() in i.text.lower() or keyword.lower() in i.user.screen_name.lower()]
+    return result
 
 #print(following)
 
@@ -65,6 +68,19 @@ def usertimeline():
 @app.route('/twitter/following')
 def following():
     return render_template('following.html', follows = follows)
+
+@app.route('/twitter/echo', methods=['POST'])
+def user_input():
+    foo = request.form['input']
+    if foo == "user":
+        return redirect('/twitter/usertimeline')
+    elif foo == "home":
+        return redirect('/twitter/hometimeline')
+    elif foo == "following":
+        return redirect('/twitter/following')
+    else:
+        x = searchApi(foo)
+        return render_template('search_results.html', results = x)
 
 if __name__ == '__main__':
     app.run(debug=True)

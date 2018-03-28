@@ -2,6 +2,10 @@
 
 {% block body %}
 <h1>Twitter api</h1>
+<form action ="/twitter/echo" method="POST">
+  <input type = "text" name="input"><br>
+  <input type = "submit">
+</form>
 <ul class="list-group">
   <li class="list-group-item"><a href="twitter/hometimeline"> User (@nhuang54) home timeline of tweets</a></li>
   <li class="list-group-item"><a href="twitter/usertimeline"> User (@nhuang54)'s tweets</a></li>
