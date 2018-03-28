@@ -6,10 +6,10 @@ app = Flask(__name__)
 
 #twitter stuff
 #------------------------------------------------------
-consumer_key = 'WH3jhSuTMRA3ESj8xInLEsiLe'
-consumer_secret = 'c2hPnRpVbv8yudyepiPzZ9ihBbYw6EsnevNDqdi3XnSt3HZH51'
-access_token = '976927078489653248-86NxrrQxbrKcdat3Dlxpwaf1aK0euZQ'
-access_secret = '3SP5HnQK4VX9D4OBnttCLXtHjQB5bOrvKY59zhTRHvMM6'
+consumer_key = ''
+consumer_secret = ''
+access_token = ''
+access_secret = ''
 #-------------------------------------------------------
 api = twitter.Api(consumer_key=consumer_key,
  consumer_secret=consumer_secret,
