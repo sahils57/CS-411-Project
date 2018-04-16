@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect
 from data import Articles
 import twitter
+from datetime import datetime, date, timedelta
 
 app = Flask(__name__)
 
@@ -11,17 +12,100 @@ consumer_secret = 'c2hPnRpVbv8yudyepiPzZ9ihBbYw6EsnevNDqdi3XnSt3HZH51'
 access_token = '976927078489653248-86NxrrQxbrKcdat3Dlxpwaf1aK0euZQ'
 access_secret = '3SP5HnQK4VX9D4OBnttCLXtHjQB5bOrvKY59zhTRHvMM6'
 #-------------------------------------------------------
-api = twitter.Api(consumer_key=consumer_key,
- consumer_secret=consumer_secret,
- access_token_key=access_token,
- access_token_secret=access_secret)
+api = twitter.Api(consumer_key, consumer_secret, access_token, access_secret, tweet_mode="extended")
 
 #print(api.VerifyCredentials())
 #credentials = api.VerifyCredentials()
 
 a = api.GetHomeTimeline(contributor_details = True)
-home_timeline = [[i.text, i.user.screen_name] for i in a]
-#home_timeline_users = [i.user for i in a]
+
+#below only includes non-retweets
+#home_timeline = [[i.full_text, i.user.screen_name, i.created_at, i.user.profile_image_url] for i in a if i.retweeted_status == None]
+
+# text_file = open("output.txt", "w")
+# text_file.write(str(a[3]))
+# #text_file.write(str(a[6]))
+# text_file.close()
+
+def checkYoutubeTweet(x):
+    yt_test = str(x.urls[0].expanded_url)
+    yt_test = yt_test.split("/")
+    if yt_test[2] == "youtu.be" or yt_test[2] == "youtube":
+        return True
+    else:
+        return False
+
+
+def generateYoutubeURL(x):         # from a json object
+    yt_test = str(x.urls[0].expanded_url)
+    yt_test = yt_test.split("/")
+    yt_url = yt_test[-1]
+    yt_url = "https://www.youtube.com/embed/" + yt_url
+    return yt_url
+
+#below includes the full text for retweets
+def generateTweets(i):
+    #make applicable for multiple multimedia links, like image with youtube link in text
+
+    timeline = []
+
+    #retweet vs tweet main loop
+    for x in range(i):
+        if a[x].retweeted_status == None:
+            timeline += [["none", a[x].full_text, a[x].user.screen_name, a[x].created_at, a[x].user.profile_image_url]]
+        else:
+            timeline += [["none", a[x].retweeted_status.full_text, a[x].user.screen_name, a[x].created_at, a[x].user.profile_image_url]]
+
+    # media in tweet hosted on twitter
+    for z in range(i):
+        if a[z].retweeted_status == None:
+            if a[z].media != None:
+                if a[z].media[0].type == "animated_gif":
+                    timeline[z][0] = "video"
+                    timeline[z] += [a[z].media[0].video_info['variants'][0]['url']]
+                elif a[z].media[0].type == "video":
+                    timeline[z][0] = "video"
+                    for j in range(4):
+                        if a[z].media[0].video_info['variants'][j]['content_type'] == "video/mp4":
+                            timeline[z] += [a[z].media[0].video_info['variants'][j]['url']]
+                            break
+                        else:
+                            continue
+                        timeline[z][0] = "none"
+                elif a[z].media[0].type == "photo":
+                    timeline[z][0] == "photo"
+                    timeline[z] += [a[z].media[0].media_url_https]
+        else:
+            if a[z].retweeted_status.media != None:
+                if a[z].retweeted_status.media[0].type == "animated_gif":
+                    timeline[z][0] = "video"
+                    timeline[z] += [a[z].media[0].video_info['variants'][0]['url']]
+                elif a[z].retweeted_status.media[0].type == "video":
+                    timeline[z][0] = "video"
+                    for j in range(4):
+                        if a[z].retweeted_status.media[0].video_info['variants'][j]['content_type'] == "video/mp4":
+                            timeline[z] += [a[z].retweeted_status.media[0].video_info['variants'][j]['url']]
+                            break
+                        else:
+                            continue
+                            timeline[z][0] = "none"
+                elif a[z].retweeted_status.media[0].type == "photo":
+                    timeline[z][0] = "photo"
+                    timeline[z] += [a[z].retweeted_status.media[0].media_url_https]
+
+    # link in tweeet text
+    for y in range(i):
+        if timeline[y][0] == "none":
+            if a[y].urls != []:
+                if checkYoutubeTweet(a[y]):
+                    timeline[y][0] = "youtube"
+                    timeline[y] += [generateYoutubeURL(a[y])]
+                else:
+                    timeline[y][0] = "link"
+                    timeline[y] += [a[y].urls[0].expanded_url]
+    return timeline
+
+home_timeline = generateTweets(18)
 
 b = api.GetUserTimeline(screen_name='nhuang54')
 user_timeline = [i.text for i in b]
@@ -32,14 +116,36 @@ follows = [i.screen_name for i in c]
 def searchApi(keyword):
     result = [[i.text, i.user.screen_name] for i in a if keyword.lower() in i.text.lower() or keyword.lower() in i.user.screen_name.lower()]
     return result
+#
+# def formatTime(twitter_date):
+#     words = twitter_date.replace(':', ' ')
+#     words = words.split()
+#     words = [str(r) for r in words[1:]]
+#     words.remove("+0000")
+#     date = ' '.join(words)
+#     final_date = time.strptime(date, "%b %d %H %M %S %Y")
+#     print(final_date)
+#     final_date = time.mktime(final_date)# time difference zones
+#     current_time = time.time()
+#     print(time.localtime(final_date))
+#     print(time.localtime(current_time))
+#     difference_time = current_time-final_date
+#     return final_date
 
-#print(following)
+def formatTime(twitter_date):
+    current_date = datetime.today()
+    print(current_date)
+    final_date = datetime.strptime(twitter_date, '%a %b %d %H:%M:%S +0000 %Y')
+    print(final_date)
+    difference_date = current_date - final_date
+    print(difference_date.seconds)
+    return difference_date
 
 Articles = Articles()
 
 @app.route('/')
 def index():
-    return render_template('home.html')
+    return render_template('home.html', tweets = home_timeline)
 
 @app.route('/about')
 def about():
@@ -51,7 +157,7 @@ def articles():
 
 @app.route('/article/<string:id>')
 def article(id):
-    return render_template('article.html', id = id)
+    return render_template('article.html', id = id, tweets = home_timeline)
 
 @app.route('/twitter')
 def twitter():
