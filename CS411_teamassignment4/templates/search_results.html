@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<h1> Search results </h1>
+<ul class="list-group">
+  {% for i in results %}
+    <li class="list-group-item">@{{i[1]}}: {{i[0]}}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

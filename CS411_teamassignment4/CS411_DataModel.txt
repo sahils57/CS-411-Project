@@ -1,0 +1,21 @@
+CS411 data model
+
+JSON schema:
+
+{
+	"tweets": {
+		"unique key1": {
+			"tweet": "I HAVE POWER TODAY !! 😁\n\nwe live ~\n\nhttps://t.co/9y6O6gl7X6 https://t.co/hqFZn8Y0yb"
+			"user": "Nightbloo"
+		}
+		"unique key2": {
+			"tweet": "Check out all the champs and skins on sale this..."
+			"user": "LeagueOfLegends
+		}
+		.
+		.
+		.
+	}
+}
+
+Current JSON schema looks like what's presented above, will build upon it as we progress.
