@@ -1,6 +1,0 @@
-﻿A document explaining why you chose the technology stack that you are demonstrating; I’d like to know if you considered other stacks, and the process you used to choose the stack for the prototype. The doc should be added to your ‘docs’ folder on github
-
-
-
-
-We choose to work with Flask because most of our members were familiar with Python already. Accessing twitter feed using a website is easier using flask especially in a small project like this assignment.
