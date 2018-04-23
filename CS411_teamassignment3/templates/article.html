@@ -342,6 +342,10 @@
                             <source src = "{{tweet[-1]}}" type="video/mp4">
                           </video>
 
+                        {% elif tweet[0] == "photo" or tweet[0] == "re_photo" %}
+                          <img src="{{tweet[-1]}}" alt="twitter image" width="800"/>
+
+
                         {% elif tweet[0] == "youtube" %}
                           <iframe width="720" height="480"
                             src = "{{tweet[-1]}}">
@@ -350,8 +354,6 @@
                         {% elif tweet[0] == "link" %}
                           <h2><a href="{{tweet[-1]}}"> LINK HERE </a></h2>
 
-                        {% elif tweet[0] == "photo" or tweet[0] == "re_photo" %}
-                          <img src="{{tweet[-1]}}" alt="twitter image" height="320"/>
 
                         {% endif %}
                         <p>tweeted at {{tweet[4]}}</p>

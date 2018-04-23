@@ -24,7 +24,7 @@ a = api.GetHomeTimeline(contributor_details = True)
 #home_timeline = [[i.full_text, i.user.screen_name, i.created_at, i.user.profile_image_url] for i in a if i.retweeted_status == None]
 
 text_file = open("output.txt", "w")
-text_file.write(str(a[4]))
+text_file.write(str(a[3]))
 #text_file.write(str(a[6]))
 text_file.close()
 
@@ -99,7 +99,8 @@ def generateTweets(i):
                             continue
                         timeline[z][0] = "none"
                 elif a[z].media[0].type == "photo":
-                    timeline[z][0] == "photo"
+                    timeline[z][0] = "photo"
+                    print(timeline[3][0])
                     timeline[z] += [a[z].media[0].media_url_https]
         else:
             if a[z].retweeted_status.media != None:
