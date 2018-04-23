@@ -14,7 +14,8 @@
     const auth = firebase.auth();
     // Sign in
     const promise = auth.signInWithEmailAndPassword(email, pass);
-    promise.catch(e => console.log(e.message));
+    promise.catch(e => console.log(e.message);
+
   });
 
   // Log out
@@ -36,6 +37,7 @@
   firebase.auth().onAuthStateChanged(firebaseUser => {
     if (firebaseUser) {
         console.log(firebaseUser);
+        document.locationhref= 'home.html';
         //btnLogout.classList.remove('hide');
         btnLogout.style.visibility='visible';
     } else {

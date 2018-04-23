@@ -17,7 +17,7 @@
     firebase.initializeApp(config);
   </script>
   <script src="https://apis.google.com/js/platform.js" async defer></script>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/style.css') }}" />
 </head>
 <body>
 
@@ -38,7 +38,7 @@
 
   </div>
 
-  <script src="app.js"></script>
+  <script type="text/javascript" src="{{url_for('static', filename='js/app.js') }}"></script>
 
 </body>
 </html>
