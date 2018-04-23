@@ -19,13 +19,14 @@ api = twitter.Api(consumer_key, consumer_secret, access_token, access_secret, tw
 
 a = api.GetHomeTimeline(contributor_details = True)
 
+#print(a[4].retweeted_status.user.screen_name)
 #below only includes non-retweets
 #home_timeline = [[i.full_text, i.user.screen_name, i.created_at, i.user.profile_image_url] for i in a if i.retweeted_status == None]
 
-# text_file = open("output.txt", "w")
-# text_file.write(str(a[3]))
-# #text_file.write(str(a[6]))
-# text_file.close()
+text_file = open("output.txt", "w")
+text_file.write(str(a[4]))
+#text_file.write(str(a[6]))
+text_file.close()
 
 def checkYoutubeTweet(x):
     yt_test = str(x.urls[0].expanded_url)
@@ -43,6 +44,31 @@ def generateYoutubeURL(x):         # from a json object
     yt_url = "https://www.youtube.com/embed/" + yt_url
     return yt_url
 
+    #
+    # def formatTime(twitter_date):
+    #     words = twitter_date.replace(':', ' ')
+    #     words = words.split()
+    #     words = [str(r) for r in words[1:]]
+    #     words.remove("+0000")
+    #     date = ' '.join(words)
+    #     final_date = time.strptime(date, "%b %d %H %M %S %Y")
+    #     print(final_date)
+    #     final_date = time.mktime(final_date)# time difference zones
+    #     current_time = time.time()
+    #     print(time.localtime(final_date))
+    #     print(time.localtime(current_time))
+    #     difference_time = current_time-final_date
+    #     return final_date
+
+def formatTime(twitter_date):
+    current_date = datetime.today()
+    #print(current_date)
+    final_date = datetime.strptime(twitter_date, '%a %b %d %H:%M:%S +0000 %Y')
+    #print(final_date)
+    difference_date = current_date - final_date
+    #print(difference_date.seconds)
+    return difference_date
+
 #below includes the full text for retweets
 def generateTweets(i):
     #make applicable for multiple multimedia links, like image with youtube link in text
@@ -52,16 +78,16 @@ def generateTweets(i):
     #retweet vs tweet main loop
     for x in range(i):
         if a[x].retweeted_status == None:
-            timeline += [["none", a[x].full_text, a[x].user.screen_name, a[x].created_at, a[x].user.profile_image_url]]
+            timeline += [["none", "not_retweeted", a[x].full_text, a[x].user.screen_name, a[x].created_at, a[x].user.profile_image_url]]
         else:
-            timeline += [["none", a[x].retweeted_status.full_text, a[x].user.screen_name, a[x].created_at, a[x].user.profile_image_url]]
+            timeline += [["re_none", a[x].retweeted_status.user.screen_name, a[x].retweeted_status.full_text, a[x].user.screen_name, a[x].created_at, a[x].user.profile_image_url]]
 
     # media in tweet hosted on twitter
     for z in range(i):
         if a[z].retweeted_status == None:
             if a[z].media != None:
                 if a[z].media[0].type == "animated_gif":
-                    timeline[z][0] = "video"
+                    timeline[z][0] = "gif"
                     timeline[z] += [a[z].media[0].video_info['variants'][0]['url']]
                 elif a[z].media[0].type == "video":
                     timeline[z][0] = "video"
@@ -78,24 +104,24 @@ def generateTweets(i):
         else:
             if a[z].retweeted_status.media != None:
                 if a[z].retweeted_status.media[0].type == "animated_gif":
-                    timeline[z][0] = "video"
+                    timeline[z][0] = "re_gif"
                     timeline[z] += [a[z].media[0].video_info['variants'][0]['url']]
                 elif a[z].retweeted_status.media[0].type == "video":
-                    timeline[z][0] = "video"
+                    timeline[z][0] = "re_video"
                     for j in range(4):
                         if a[z].retweeted_status.media[0].video_info['variants'][j]['content_type'] == "video/mp4":
                             timeline[z] += [a[z].retweeted_status.media[0].video_info['variants'][j]['url']]
                             break
                         else:
                             continue
-                            timeline[z][0] = "none"
+                            timeline[z][0] = "re_none"
                 elif a[z].retweeted_status.media[0].type == "photo":
-                    timeline[z][0] = "photo"
+                    timeline[z][0] = "re_photo"
                     timeline[z] += [a[z].retweeted_status.media[0].media_url_https]
 
     # link in tweeet text
     for y in range(i):
-        if timeline[y][0] == "none":
+        if timeline[y][0] == "none" or timeline[y][0] == "re_none":
             if a[y].urls != []:
                 if checkYoutubeTweet(a[y]):
                     timeline[y][0] = "youtube"
@@ -116,30 +142,7 @@ follows = [i.screen_name for i in c]
 def searchApi(keyword):
     result = [[i.text, i.user.screen_name] for i in a if keyword.lower() in i.text.lower() or keyword.lower() in i.user.screen_name.lower()]
     return result
-#
-# def formatTime(twitter_date):
-#     words = twitter_date.replace(':', ' ')
-#     words = words.split()
-#     words = [str(r) for r in words[1:]]
-#     words.remove("+0000")
-#     date = ' '.join(words)
-#     final_date = time.strptime(date, "%b %d %H %M %S %Y")
-#     print(final_date)
-#     final_date = time.mktime(final_date)# time difference zones
-#     current_time = time.time()
-#     print(time.localtime(final_date))
-#     print(time.localtime(current_time))
-#     difference_time = current_time-final_date
-#     return final_date
 
-def formatTime(twitter_date):
-    current_date = datetime.today()
-    print(current_date)
-    final_date = datetime.strptime(twitter_date, '%a %b %d %H:%M:%S +0000 %Y')
-    print(final_date)
-    difference_date = current_date - final_date
-    print(difference_date.seconds)
-    return difference_date
 
 Articles = Articles()
 
