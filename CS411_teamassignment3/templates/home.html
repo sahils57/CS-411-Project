@@ -217,6 +217,7 @@
                   }
 
                   .timeline-centered .timeline-entry .timeline-entry-inner .timeline-icon.bg-success {
+                      background-image: url("https://i.imgur.com/eCSfHsq.jpg");
                       background-color: #00a651;
                       color: #fff;
                   }
@@ -264,8 +265,8 @@
                   }
 
                   .timeline-centered .timeline-entry .timeline-entry-inner .timeline-label h2, .timeline-centered .timeline-entry .timeline-entry-inner .timeline-label p {
-                      color: #737881;
-                      font-family: "Noto Sans",sans-serif;
+                      color: #000000;
+                      font-family: "Roboto",sans-serif;
                       font-size: 12px;
                       margin: 0;
                       line-height: 1.428571429;
@@ -276,6 +277,7 @@
                       }
 
                   .timeline-centered .timeline-entry .timeline-entry-inner .timeline-label h2 {
+                      font-family: "Roboto",sans-serif;
                       font-size: 16px;
                       margin-bottom: 10px;
                   }
@@ -291,12 +293,19 @@
                           -ms-filter: alpha(opacity=60);
                           filter: alpha(opacity=60);
                       }
+                      .timeline-centered .timeline-entry .timeline-entry-inner .timeline-label h3 {
+                          color: #000000;
+                          font-family: "Roboto", sans-serif;
+                          font-size: 21px;
+                          margin-bottom: 10px;
+                      }
       </style>
 
       <!--<link rel="stylesheet" href="styles.css">-->
+            <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
       <link href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
       <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
-      <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+
 {% endblock %}
 
 {% block body %}
@@ -309,77 +318,55 @@
     <div class="row">
 
           <div class="timeline-centered">
+            {% for tweet in tweets %}
+            <!-- if video, if image, if multiple images, if youtube url, if twitch stream -->
+            <article class="timeline-entry">
+                <div class="timeline-entry-inner">
+                    <!-- figure out how to make variable circles -->
+                    <div class="timeline-icon bg-success">
+                        <i class="entypo-feather"></i>
+                    </div>
+                    <div class="timeline-label">
+                        {% if tweet[1] == "not_retweeted" %}
+                        <h2><a href="https://www.twitter.com/{{tweet[3]}}" style="color:#33AAD3">@{{tweet[3]}}</a> <span>tweeted</span></h2>
+                        <h3>{{tweet[2]}}</h3>
 
-          <article class="timeline-entry">
+                        {% else %}
+                        <h2><a href="https://www.twitter.com/{{tweet[3]}}" style="color:#33AAD3">@{{tweet[3]}}</a> <span>retweeted</span> <a href="https://www.twitter.com/{{tweet[1]}}" style="color:#33AAD3">@{{tweet[1]}}</a></h2>
+                        <h3>{{tweet[2]}}</h3>
 
-              <div class="timeline-entry-inner">
+                        {% endif %}
 
-                  <div class="timeline-icon bg-primary">
-                      <i class="entypo-feather"></i>
-                  </div>
+                        {% if tweet[0] == "video" or tweet[0] == "re_video" %}
+                          <video width="720" height="480" controls>
+                            <source src = "{{tweet[-1]}}" type="video/mp4">
+                          </video>
 
-                  <div class="timeline-label">
-                      <h2><a href="#">Nuan Huang</a> <span>posted a status update</span></h2>
-                      <p>Alphabet earnestly middleton extremely distrusts she boy now not. Add and offered prepare how cordial two promise. Greatly who affixed suppose but enquire compact prepare all put. Added forth chief trees but rooms think may.</p>
-                  </div>
-              </div>
+                        {% elif tweet[0] == "gif" or tweet[0] == "re_gif" %}
+                          <video width="320" height="240" autoplay loop>
+                            <source src = "{{tweet[-1]}}" type="video/mp4">
+                          </video>
 
-          </article>
-
-
-          <article class="timeline-entry">
-
-              <div class="timeline-entry-inner">
-
-                  <div class="timeline-icon bg-secondary">
-                      <i class="entypo-suitcase"></i>
-                  </div>
-
-                  <div class="timeline-label">
-                      <h2><a href="#">Job Meeting</a></h2>
-                      <p>You have a meeting at <strong>Laborator Office</strong> Today.</p>
-                  </div>
-              </div>
-
-          </article>
+                        {% elif tweet[0] == "photo" or tweet[0] == "re_photo" %}
+                          <img src="{{tweet[-1]}}" alt="twitter image" width="800"/>
 
 
-          <article class="timeline-entry">
+                        {% elif tweet[0] == "youtube" %}
+                          <iframe width="720" height="480"
+                            src = "{{tweet[-1]}}">
+                          </iframe>
 
-              <div class="timeline-entry-inner">
-
-                  <div class="timeline-icon bg-info">
-                      <i class="entypo-location"></i>
-                  </div>
-
-                  <div class="timeline-label">
-                      <h2><a href="#">Dennis Wu</a> <span>checked in at</span> <a href="#">Boston University</a></h2>
-
-                      <blockquote>Great place, feeling like in home.</blockquote>
-                  </div>
-              </div>
-
-          </article>
+                        {% elif tweet[0] == "link" %}
+                          <h2><a href="{{tweet[-1]}}"> LINK HERE </a></h2>
 
 
-          <article class="timeline-entry">
+                        {% endif %}
+                        <p>tweeted at {{tweet[4]}}</p>
+                    </div>
+                </div>
 
-              <div class="timeline-entry-inner">
-
-                  <div class="timeline-icon bg-warning">
-                      <i class="entypo-camera"></i>
-                  </div>
-
-                  <div class="timeline-label">
-                      <h2><a href="#">Arber Nushi</a> <span>changed his</span> <a href="#">Profile Picture</a></h2>
-
-                      <blockquote>Pianoforte principles our unaffected not for astonished travelling are particular.</blockquote>
-
-                      <img src="http://krishnagroupindia.com/wp-content/uploads/2018/01/pexels-photo-428339.jpeg" class="img-responsive img-rounded full-width">
-                  </div>
-              </div>
-
-          </article>
+            </article>
+            {% endfor %}
 
 
           <article class="timeline-entry begin">
