@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+{% block body %}
+<h1> Twitter </h1>
+<a href="/authorize/twitter" class="btn btn-lg btn-primary">Connect with Twitter</a>
+<a href="/settings/disconnected" class="btn btn-lg btn-danger">Disconnect Twitter</a>
+<p> Current status: {{status[0]}} </p>
+
+<h1> Tumblr </h1>
+<a href="#" class="btn btn-lg btn-info">Connect with Tumblr</a>
+<a href="#" class="btn btn-lg btn-danger">Disconnect Tumblr</a>
+<p> Current status: {{status[1]}} </p>
+{% endblock %}

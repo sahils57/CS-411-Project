@@ -1,9 +1,25 @@
-from flask import Flask, render_template, request, redirect
+from __future__ import print_function
+from flask import Flask, render_template, request, redirect, flash, url_for
+import oauth2 as oauth
+import urlparse
+import urllib
+import json
 from data import Articles
 import twitter
+import webbrowser
+import pyrebase
 from datetime import datetime, date, timedelta
 
+
 app = Flask(__name__)
+config = {
+    "apiKey": "AIzaSyC9Lgc_qAajV-HzLR0Rjc38ZlZx6Yi4Srg",
+    "authDomain": "cs411-webapp.firebaseapp.com",
+    "databaseURL": "https://cs411-webapp.firebaseio.com",
+    "storageBucket": "cs411-webapp.appspot.com"
+}
+firebase = pyrebase.initialize_app(config)
+db = firebase.database()
 
 #twitter stuff
 #------------------------------------------------------
@@ -11,6 +27,13 @@ consumer_key = 'WH3jhSuTMRA3ESj8xInLEsiLe'
 consumer_secret = 'c2hPnRpVbv8yudyepiPzZ9ihBbYw6EsnevNDqdi3XnSt3HZH51'
 access_token = '976927078489653248-86NxrrQxbrKcdat3Dlxpwaf1aK0euZQ'
 access_secret = '3SP5HnQK4VX9D4OBnttCLXtHjQB5bOrvKY59zhTRHvMM6'
+#------
+request_token_url = 'https://twitter.com/oauth/request_token'
+access_token_url = 'https://twitter.com/oauth/access_token'
+authorize_url = 'https://twitter.com/oauth/authorize'
+show_user_url = 'https://api.twitter.com/1.1/users/show.json'
+#------
+oauth_store = {}
 #-------------------------------------------------------
 api = twitter.Api(consumer_key, consumer_secret, access_token, access_secret, tweet_mode="extended")
 
@@ -100,7 +123,6 @@ def generateTweets(i):
                         timeline[z][0] = "none"
                 elif a[z].media[0].type == "photo":
                     timeline[z][0] = "photo"
-                    print(timeline[3][0])
                     timeline[z] += [a[z].media[0].media_url_https]
         else:
             if a[z].retweeted_status.media != None:
@@ -132,20 +154,83 @@ def generateTweets(i):
                     timeline[y] += [a[y].urls[0].expanded_url]
     return timeline
 
-home_timeline = generateTweets(18)
+#home_timeline = generateTweets(18)
 
-b = api.GetUserTimeline(screen_name='nhuang54')
-user_timeline = [i.text for i in b]
+#b = api.GetUserTimeline(screen_name='nhuang54')
+#user_timeline = [i.text for i in b]
 
-c = api.GetFriends()
-follows = [i.screen_name for i in c]
+#c = api.GetFriends()
+#follows = [i.screen_name for i in c]
 
 def searchApi(keyword):
     result = [[i.text, i.user.screen_name] for i in a if keyword.lower() in i.text.lower() or keyword.lower() in i.user.screen_name.lower()]
     return result
 
+#------------------------------------------------------#
+#----------   TWITTER OAUTH TESTING -------------------#
+#------------------------------------------------------#
+# REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
+# ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'
+# AUTHORIZATION_URL = 'https://api.twitter.com/oauth/authorize'
+# SIGNIN_URL = 'https://api.twitter.com/oauth/authenticate'
+#
+# def get_access_token(consumerkey, consumersecret):
+#     oauth_client = OAuth1Session(consumerkey, client_secret=consumersecret, callback_uri='oob')
+#     print("\n requesting token from twitter \n")
+#
+#     try:
+#         resp = oauth_client.fetch_request_token(REQUEST_TOKEN_URL);
+#     except ValueError as e:
+#         print('Invalid response from Twitter requesting temp token:')
+#
+#     url = oauth_client.authorization_url(AUTHORIZATION_URL)
+#
+#     print('I will try to start a browser to visit the following Twitter page '
+#           'if a browser will not start, copy the URL to your browser '
+#           'and retrieve the pincode to be used '
+#           'in the next step to obtaining an Authentication Token: \n'
+#           '\n\t{0}'.format(url))
+#
+#     webbrowser.open(url)
+#     pincode = input('\n Enter your pincode? ')
+#
+#     print('\nGenerating and signing a request for an access token... \n')
+#
+#     oauth_client = OAuth1Session(consumerkey, client_secret=consumersecret,
+#         resource_owner_key=resp.get('oauth_token'),
+#         resource_owner_secret=resp.get('oauth_token_secret'),
+#         verifier=pincode)
+#
+#     try:
+#         resp = oauth_client.fetch_access_token(ACCESS_TOKEN_URL)
+#     except ValueError as e:
+#         print('Invalid response from Twitter requesting temp token:')
+#
+#     print(''' Your tokens/keys are as follows:
+#         consumer_key    =     {ck}
+#         consumer_secret =     {cs}
+#         access_token_key =    {atk}
+#         access_token_secret = {ats}'''.format(
+#             ck=consumerkey,
+#             cs=consumersecret,
+#             atk=resp.get('oauth_token'),
+#             ats=resp.get('oauth_token_secret')))
+#
+# get_access_token(consumer_key, consumer_secret)
 
 Articles = Articles()
+
+def createFakePerson(id):
+    db.child(id).child("settings").child("tumblr_boolean").set("False")
+    db.child(id).child("settings").child("twitter_boolean").set("False")
+
+    db.child(id).child("twitter").child("access_token").set("123")
+    db.child(id).child("twitter").child("access_secret").set("456")
+
+    db.child(id).child("tumblr").child("access_token").set("123")
+    db.child(id).child("tumblr").child("access_secret").set("456")
+
+createFakePerson(456)
 
 @app.route('/')
 def index():
@@ -153,6 +238,7 @@ def index():
 
 @app.route('/home')
 def home():
+    home_timeline = []
     return render_template('home.html', tweets = home_timeline)
 
 @app.route('/about')
@@ -167,21 +253,28 @@ def articles():
 def article(id):
     return render_template('article.html', id = id, tweets = home_timeline)
 
-@app.route('/twitter')
-def twitter():
-    return render_template('twitter.html')
+@app.route('/settings')
+def settings():
+    #get twitter status and store in 2 length list
+    status = [db.child("1234").child("settings").child("twitter_boolean").get().val(), db.child("1234").child("settings").child("tumblr_boolean").get().val()]
+    print(status)
+    return render_template('settings.html', status = status)
 
-@app.route('/twitter/hometimeline')
-def hometimeline():
-    return render_template('hometimeline.html', tweets= home_timeline)
-
-@app.route('/twitter/usertimeline')
-def usertimeline():
-    return render_template('usertimeline.html', tweets = user_timeline)
-
-@app.route('/twitter/following')
-def following():
-    return render_template('following.html', follows = follows)
+# @app.route('/twitter')
+# def twitter():
+#     return render_template('twitter.html')
+#
+# @app.route('/twitter/hometimeline')
+# def hometimeline():
+#     return render_template('hometimeline.html', tweets= home_timeline)
+#
+# @app.route('/twitter/usertimeline')
+# def usertimeline():
+#     return render_template('usertimeline.html', tweets = user_timeline)
+#
+# @app.route('/twitter/following')
+# def following():
+#     return render_template('following.html', follows = follows)
 
 @app.route('/twitter/echo', methods=['POST'])
 def user_input():
@@ -195,6 +288,93 @@ def user_input():
     else:
         x = searchApi(foo)
         return render_template('search_results.html', results = x)
+
+@app.route('/authorize/twitter', methods=['GET', 'POST'])
+def auth_tw():
+    consumer = oauth.Consumer(consumer_key, consumer_secret)
+    client = oauth.Client(consumer)
+
+    app_callback_url = url_for('callback', _external = True)
+
+    resp, content = client.request(request_token_url, "POST", body=urllib.urlencode({"oauth_callback": app_callback_url}))
+    #resp, content = client.request(request_token_url, "GET")
+    #body=urllib.urlencode({"oauth_callback": app_callback_url})
+    print(resp)
+    print(content)
+    print(app_callback_url)
+    if resp['status'] != '200':
+        error_message = "Invalid response %s" % resp['status']
+        return render_template('error.html', error_message = error_message)
+
+    request_token = dict(urlparse.parse_qsl(content))
+    oauth_token = request_token['oauth_token']
+    oauth_token_secret = request_token['oauth_token_secret']
+
+    ## store oauth token secret somewher
+    oauth_store[oauth_token] = oauth_token_secret
+
+    return render_template('start.html', authorize_url=authorize_url, oauth_token = oauth_token,
+        request_token_url = request_token_url)
+
+
+    print("Go to the following link in your browser:")
+    print(authorize_url + "?oauth_token=" + request_token['oauth_token'])
+
+@app.route('/callback')
+def callback():
+    oauth_token = request.args.get('oauth_token')
+    oauth_verifier = request.args.get('oauth_verifier')
+    oauth_denied = request.args.get('denied')
+
+    if oauth_denied:
+        if oauth_denied in oauth_store:
+            del oauth_store[oauth_denied]
+        return render_template('error.html', error_message="OAuth request denied by this user")
+
+    if not oauth_token or not oauth_verifier:
+        return render_template('error.html', error_message="callback param(s) missing")
+
+    if oauth_token not in oauth_store:
+        return render_template('error.html', error_message="oauth_token not found locally")
+
+
+    oauth_token_secret = oauth_store[oauth_token]
+
+    consumer = oauth.Consumer(consumer_key, consumer_secret)
+    token = oauth.Token(oauth_token, oauth_token_secret)
+    token.set_verifier(oauth_verifier)
+    client = oauth.Client(consumer, token)
+
+    resp, content = client.request(access_token_url, "POST")
+    access_token = dict(urlparse.parse_qsl(content))
+
+    user_id = access_token['user_id']
+
+
+    # add to database
+    db.child(1234).child("settings").child("twitter_boolean").set("True")
+
+    #SAVE THESE TOKENS !
+    real_oauth_token = access_token['oauth_token']
+    real_oauth_token_secret = access_token['oauth_token_secret']
+
+    real_token = oauth.Token(real_oauth_token, real_oauth_token_secret)
+    real_client = oauth.Client(consumer, real_token)
+    real_resp, real_content = real_client.request(show_user_url + '?user_id=' + user_id, "GET")
+
+    if real_resp['status'] != '200':
+        error_message = "Invalid response from twitter: " + real_resp['status']
+        return render_template('error.html', error_message=error_message)
+
+    del oauth_store[oauth_token]
+
+
+    return redirect(url_for("settings"))
+
+@app.route("/settings/disconnected")
+def disconnected():
+    db.child(1234).child("settings").child("twitter_boolean").set("False")
+    return redirect(url_for("settings"))
 
 if __name__ == '__main__':
     app.run(debug=True)
