@@ -226,6 +226,7 @@
                   }
 
                   .timeline-centered .timeline-entry .timeline-entry-inner .timeline-icon.bg-info {
+                      background-image: url("https://i.imgur.com/Dh75Ae4.png");
                       background-color: #21a9e1;
                       color: #fff;
                   }
@@ -334,6 +335,7 @@
             </article>
             {% else %}
               {% for tweet in tweets %}
+              {% if tweet[0] == "twitter" %}
               <!-- if video, if image, if multiple images, if youtube url, if twitch stream -->
               <article class="timeline-entry">
                   <div class="timeline-entry-inner">
@@ -342,45 +344,75 @@
                           <i class="entypo-feather"></i>
                       </div>
                       <div class="timeline-label">
-                          {% if tweet[1] == "not_retweeted" %}
-                          <h2><a href="https://www.twitter.com/{{tweet[3]}}" style="color:#33AAD3">@{{tweet[3]}}</a> <span>tweeted</span></h2>
-                          <h3>{{tweet[2]}}</h3>
+                          {% if tweet[2] == "not_retweeted" %}
+                          <h2><a href="https://www.twitter.com/{{tweet[4]}}" style="color:#33AAD3">@{{tweet[4]}}</a> <span>tweeted</span></h2>
+                          <h3>{{tweet[3]}}</h3>
 
                           {% else %}
-                          <h2><a href="https://www.twitter.com/{{tweet[3]}}" style="color:#33AAD3">@{{tweet[3]}}</a> <span>retweeted</span> <a href="https://www.twitter.com/{{tweet[1]}}" style="color:#33AAD3">@{{tweet[1]}}</a></h2>
-                          <h3>{{tweet[2]}}</h3>
+                          <h2><a href="https://www.twitter.com/{{tweet[4]}}" style="color:#33AAD3">@{{tweet[4]}}</a> <span>retweeted</span> <a href="https://www.twitter.com/{{tweet[2]}}" style="color:#33AAD3">@{{tweet[2]}}</a></h2>
+                          <h3>{{tweet[3]}}</h3>
 
                           {% endif %}
 
-                          {% if tweet[0] == "video" or tweet[0] == "re_video" %}
+                          {% if tweet[1] == "video" or tweet[1] == "re_video" %}
                             <video width="720" height="480" controls>
                               <source src = "{{tweet[-1]}}" type="video/mp4">
                             </video>
 
-                          {% elif tweet[0] == "gif" or tweet[0] == "re_gif" %}
+                          {% elif tweet[1] == "gif" or tweet[1] == "re_gif" %}
                             <video width="320" height="240" autoplay loop>
                               <source src = "{{tweet[-1]}}" type="video/mp4">
                             </video>
 
-                          {% elif tweet[0] == "photo" or tweet[0] == "re_photo" %}
+                          {% elif tweet[1] == "photo" or tweet[1] == "re_photo" %}
                             <img src="{{tweet[-1]}}" alt="twitter image" width="800"/>
 
 
-                          {% elif tweet[0] == "youtube" %}
+                          {% elif tweet[1] == "youtube" %}
                             <iframe width="720" height="480"
                               src = "{{tweet[-1]}}">
                             </iframe>
 
-                          {% elif tweet[0] == "link" %}
+                          {% elif tweet[1] == "link" %}
                             <h2><a href="{{tweet[-1]}}"> LINK HERE </a></h2>
 
 
                           {% endif %}
-                          <p>tweeted at {{tweet[4]}}</p>
+                          <p>tweeted at {{tweet[5]}}</p>
                       </div>
                   </div>
 
               </article>
+              {% else %}
+              <article class="timeline-entry">
+                  <div class="timeline-entry-inner">
+                      <!-- figure out how to make variable circles -->
+                      <div class="timeline-icon bg-info">
+                          <i class="entypo-feather"></i>
+                      </div>
+                      <div class="timeline-label">
+
+                          <h2><a href="{{tweet[4]}}" style="color:#33AAD3">{{tweet[2]}}</a> <span>reblogged</span> </h2>
+
+                          {% if tweet[1] == "video" %}
+                            <video width="720" height="480" controls>
+                              <source src = "{{tweet[-1]}}" type="video/mp4">
+                            </video>
+
+                          {% elif tweet[1] == "photo" %}
+                            <img src="{{tweet[-1]}}" alt="tumblr image" width="800"/>
+
+
+                          {% elif tweet[1] == "text" %}
+                            <h3> {{tweet[-1]}} </h3>
+
+                          {% endif %}
+                          <p>reblogged at {{tweet[3]}}</p>
+                      </div>
+                  </div>
+
+              </article>
+              {% endif %}
               {% endfor %}
             {% endif %}
 
