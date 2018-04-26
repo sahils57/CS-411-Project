@@ -58,7 +58,7 @@ api = twitter.Api(consumer_key, consumer_secret, access_token, access_secret, tw
 #print(api.VerifyCredentials())
 #credentials = api.VerifyCredentials()
 
-a = api.GetHomeTimeline(contributor_details = True)
+
 
 #print(a[4].retweeted_status.user.screen_name)
 #below only includes non-retweets
@@ -113,11 +113,12 @@ def formatTime(twitter_date):
 #below includes the full text for retweets
 def generateTweets(i):
     #make applicable for multiple multimedia links, like image with youtube link in text
-
     timeline = []
 
+    a = api.GetHomeTimeline(count=(i*2), contributor_details = True)
     #retweet vs tweet main loop
     for x in range(i):
+        print(x)
         if a[x].retweeted_status == None:
             timeline += [["twitter", "none", "not_retweeted", a[x].full_text, a[x].user.screen_name, a[x].created_at, a[x].user.profile_image_url]]
         else:
@@ -219,7 +220,6 @@ def generate_tumblr_dashboard(i):
         elif post['type'] == 'video':
             if counter == (i):
                 break
-
             dashboard[counter] += ['video'] #keep track of what type
             dashboard[counter] += ['tumblr']
             dashboard[counter] += [post['blog_name']]
@@ -248,9 +248,11 @@ def generateFeed(i, twitter_bool, tumblr_bool):
                 tumblr_feed.pop()
         return feed
     elif twitter_bool == "True" and tumblr_bool == "False":
-        return generateTweets(20)
+        return generateTweets(i)
+    elif twitter_bool == "False" and tumblr_bool == "True":
+        return generate_tumblr_dashboard(i)
     else:
-        return generate_tumblr_dashboard(20)
+        return [[]]
 
 
 
@@ -272,7 +274,8 @@ createFakePerson(1234, "True", "True")
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    #return render_template('index.html')
+    return redirect(url_for('home'))
 
 @app.route('/home')
 def home():
@@ -386,9 +389,14 @@ def callback():
 
     return redirect(url_for("settings"))
 
-@app.route("/settings/disconnected")
-def disconnected():
+@app.route("/settings/twitter/disconnected")
+def tw_disconnected():
     db.child(1234).child("settings").child("twitter_boolean").set("False")
+    return redirect(url_for("settings"))
+
+@app.route("/settings/tumblr/disconnected")
+def tu_disconnected():
+    db.child(1234).child("settings").child("tumblr_boolean").set("False")
     return redirect(url_for("settings"))
 
 if __name__ == '__main__':
