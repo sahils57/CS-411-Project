@@ -101,14 +101,20 @@ def generateYoutubeURL(x):         # from a json object
     #     difference_time = current_time-final_date
     #     return final_date
 
-def formatTime(twitter_date):
-    current_date = datetime.today()
+def formatTimeTwitter(twitter_date):
+    #current_date = datetime.today()
     #print(current_date)
     final_date = datetime.strptime(twitter_date, '%a %b %d %H:%M:%S +0000 %Y')
+    fourhourdifference = final_date + timedelta(hours=-4)
     #print(final_date)
-    difference_date = current_date - final_date
+    #difference_date = current_date - final_date
     #print(difference_date.seconds)
-    return difference_date
+    return fourhourdifference
+
+def formatTimeTumblr(tumblr_date):
+    final_date = datetime.strptime(tumblr_date, '%Y-%m-%d %H:%M:%S GMT')
+    fourhourdifference = final_date + timedelta(hours=-4)
+    return fourhourdifference
 
 #below includes the full text for retweets
 def generateTweets(i):
@@ -120,9 +126,9 @@ def generateTweets(i):
     for x in range(i):
         print(x)
         if a[x].retweeted_status == None:
-            timeline += [["twitter", "none", "not_retweeted", a[x].full_text, a[x].user.screen_name, a[x].created_at, a[x].user.profile_image_url]]
+            timeline += [["twitter", "none", "not_retweeted", a[x].full_text, a[x].user.screen_name, formatTimeTwitter(a[x].created_at), a[x].user.profile_image_url]]
         else:
-            timeline += [["twitter", "re_none", a[x].retweeted_status.user.screen_name, a[x].retweeted_status.full_text, a[x].user.screen_name, a[x].created_at, a[x].user.profile_image_url]]
+            timeline += [["twitter", "re_none", a[x].retweeted_status.user.screen_name, a[x].retweeted_status.full_text, a[x].user.screen_name, formatTimeTwitter(a[x].created_at), a[x].user.profile_image_url]]
 
     # media in tweet hosted on twitter
     for z in range(i):
@@ -203,7 +209,7 @@ def generate_tumblr_dashboard(i):
             dashboard[counter] += ['tumblr']
             dashboard[counter] += ['text'] #keep track of what type
             dashboard[counter] += [post['blog_name']]
-            dashboard[counter] += [post['date']]
+            dashboard[counter] += [formatTimeTumblr(post['date'])]
             dashboard[counter] += [post['post_url']]
             dashboard[counter] += [strip_tags(post['body'])] #keep track of the info
             counter += 1
@@ -213,7 +219,7 @@ def generate_tumblr_dashboard(i):
             dashboard[counter] += ['tumblr']
             dashboard[counter] += ['photo'] #keep track of what type
             dashboard[counter] += [post['blog_name']]
-            dashboard[counter] += [post['date']]
+            dashboard[counter] += [formatTimeTumblr(post['date'])]
             dashboard[counter] += [post['post_url']]
             dashboard[counter] += [post['photos'][0]['original_size']['url']] #keep track of the info
             counter += 1
@@ -223,7 +229,7 @@ def generate_tumblr_dashboard(i):
             dashboard[counter] += ['video'] #keep track of what type
             dashboard[counter] += ['tumblr']
             dashboard[counter] += [post['blog_name']]
-            dashboard[counter] += [post['date']]
+            dashboard[counter] += [formatTimeTumblr(post['date'])]
             dashboard[counter] += [post['post_url']]
             dashboard[counter] += [post['video_url']] #keep track of the info
             counter += 1
