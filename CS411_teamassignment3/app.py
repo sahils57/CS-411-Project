@@ -12,6 +12,7 @@ import pytumblr
 from html.parser import HTMLParser
 from datetime import datetime, date, timedelta
 from tumblpy import Tumblpy
+#from flask_login import LoginManager
 
 
 app = Flask(__name__)
@@ -67,7 +68,6 @@ oauth_store = {}
 #
 # text_file = open("output.txt", "w")
 # text_file.write(str(a[3]))
-# #text_file.write(str(a[6]))
 # text_file.close()
 
 def checkYoutubeTweet(x):
@@ -155,7 +155,7 @@ def generateTweets(i):
             if a[z].retweeted_status.media != None:
                 if a[z].retweeted_status.media[0].type == "animated_gif":
                     timeline[z][1] = "re_gif"
-                    timeline[z] += [a[z].media[0].video_info['variants'][0]['url']]
+                    timeline[z] += [a[z].retweeted_status.media[0].video_info['variants'][0]['url']]
                 elif a[z].retweeted_status.media[0].type == "video":
                     timeline[z][1] = "re_video"
                     for j in range(4):
