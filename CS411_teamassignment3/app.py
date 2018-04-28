@@ -11,6 +11,7 @@ import pyrebase
 import pytumblr
 from html.parser import HTMLParser
 from datetime import datetime, date, timedelta
+from tumblpy import Tumblpy
 
 
 app = Flask(__name__)
@@ -41,10 +42,12 @@ def strip_tags(html):
 
 #twitter stuff
 #------------------------------------------------------
-consumer_key = 'WH3jhSuTMRA3ESj8xInLEsiLe'
-consumer_secret = 'c2hPnRpVbv8yudyepiPzZ9ihBbYw6EsnevNDqdi3XnSt3HZH51'
-access_token = '976927078489653248-86NxrrQxbrKcdat3Dlxpwaf1aK0euZQ'
-access_secret = '3SP5HnQK4VX9D4OBnttCLXtHjQB5bOrvKY59zhTRHvMM6'
+twitter_consumer_key = 'WH3jhSuTMRA3ESj8xInLEsiLe'
+twitter_consumer_secret = 'c2hPnRpVbv8yudyepiPzZ9ihBbYw6EsnevNDqdi3XnSt3HZH51'
+#twitter_access_token = '976927078489653248-86NxrrQxbrKcdat3Dlxpwaf1aK0euZQ'
+#twitter_access_secret = '3SP5HnQK4VX9D4OBnttCLXtHjQB5bOrvKY59zhTRHvMM6'
+twitter_access_token = ""
+twitter_access_secret = ""
 #------
 request_token_url = 'https://twitter.com/oauth/request_token'
 access_token_url = 'https://twitter.com/oauth/access_token'
@@ -53,8 +56,6 @@ show_user_url = 'https://api.twitter.com/1.1/users/show.json'
 #------
 oauth_store = {}
 #-------------------------------------------------------
-api = twitter.Api(consumer_key, consumer_secret, access_token, access_secret, tweet_mode="extended")
-
 #print(api.VerifyCredentials())
 #credentials = api.VerifyCredentials()
 
@@ -119,12 +120,13 @@ def formatTimeTumblr(tumblr_date):
 #below includes the full text for retweets
 def generateTweets(i):
     #make applicable for multiple multimedia links, like image with youtube link in text
+    api = twitter.Api(twitter_consumer_key, twitter_consumer_secret, twitter_access_token, twitter_access_secret, tweet_mode="extended")
+
     timeline = []
 
     a = api.GetHomeTimeline(count=(i*2), contributor_details = True)
     #retweet vs tweet main loop
     for x in range(i):
-        print(x)
         if a[x].retweeted_status == None:
             timeline += [["twitter", "none", "not_retweeted", a[x].full_text, a[x].user.screen_name, formatTimeTwitter(a[x].created_at), a[x].user.profile_image_url]]
         else:
@@ -192,8 +194,11 @@ def searchApi(keyword):
 # CONFIG KEYS
 tumblr_consumer_key = "EjlO747baBilTHKKbtKEg51o336I6kI0TfCD6wH2EumepSok8d"
 tumblr_consumer_secret = "RWMh1eoWxu8tf6jinPUfucTTrmyJzsKGMZqjjrgQREvDPKsFc0"
-tumblr_access_token = "otjThytAozKKBOLFPoZbaqfo8HMtvTzciABrWR6uX0sj670f6E"
-tumblr_access_secret = "Ye0VNDcGbSIG3D5hB6cGugafoWY1ryEQcszhygTdC2vVaoI8py"
+tumblr_access_token = ""
+tumblr_access_secret = ""
+#tumblr_access_token = "otjThytAozKKBOLFPoZbaqfo8HMtvTzciABrWR6uX0sj670f6E"
+#tumblr_access_secret = "Ye0VNDcGbSIG3D5hB6cGugafoWY1ryEQcszhygTdC2vVaoI8py"
+OAUTH_TOKEN_SECRET = ""
 
 def generate_tumblr_dashboard(i):
     client = pytumblr.TumblrRestClient(tumblr_consumer_key,
@@ -254,11 +259,14 @@ def generateFeed(i, twitter_bool, tumblr_bool):
                 tumblr_feed.pop()
         return feed
     elif twitter_bool == "True" and tumblr_bool == "False":
+        print("twitter access secret is " + twitter_access_secret)
+        print("twitter access token is " + twitter_access_token)
+
         return generateTweets(i)
     elif twitter_bool == "False" and tumblr_bool == "True":
         return generate_tumblr_dashboard(i)
     else:
-        return [[]]
+        return []
 
 
 
@@ -276,7 +284,7 @@ def createFakePerson(id, tw_bool, tu_bool):
     db.child(id).child("tumblr").child("access_token").set("123")
     db.child(id).child("tumblr").child("access_secret").set("456")
 
-createFakePerson(1234, "True", "True")
+createFakePerson(1234, "False", "False")
 
 @app.route('/')
 def index():
@@ -286,6 +294,7 @@ def index():
 @app.route('/home')
 def home():
     status = [db.child("1234").child("settings").child("twitter_boolean").get().val(), db.child("1234").child("settings").child("tumblr_boolean").get().val()]
+    print(status)
     home_timeline = generateFeed(20, status[0], status[1])
     return render_template('home.html', tweets = home_timeline)
 
@@ -305,7 +314,6 @@ def article(id):
 def settings():
     #get twitter status and store in 2 length list
     status = [db.child("1234").child("settings").child("twitter_boolean").get().val(), db.child("1234").child("settings").child("tumblr_boolean").get().val()]
-    print(status)
     return render_template('settings.html', status = status)
 
 @app.route('/twitter/echo', methods=['POST'])
@@ -323,7 +331,7 @@ def user_input():
 
 @app.route('/authorize/twitter', methods=['GET', 'POST'])
 def auth_tw():
-    consumer = oauth.Consumer(consumer_key, consumer_secret)
+    consumer = oauth.Consumer(twitter_consumer_key, twitter_consumer_secret)
     client = oauth.Client(consumer)
 
     app_callback_url = url_for('callback', _external = True)
@@ -364,7 +372,7 @@ def callback():
 
     oauth_token_secret = oauth_store[oauth_token]
 
-    consumer = oauth.Consumer(consumer_key, consumer_secret)
+    consumer = oauth.Consumer(twitter_consumer_key, twitter_consumer_secret)
     token = oauth.Token(oauth_token, oauth_token_secret)
     token.set_verifier(oauth_verifier)
     client = oauth.Client(consumer, token)
@@ -382,6 +390,16 @@ def callback():
     real_oauth_token = access_token['oauth_token']
     real_oauth_token_secret = access_token['oauth_token_secret']
 
+    global twitter_access_token
+    global twitter_access_secret
+    twitter_access_token = real_oauth_token
+    twitter_access_secret = real_oauth_token_secret
+
+    print(twitter_consumer_key)
+    print(twitter_consumer_secret)
+    print(twitter_access_token)
+    print(twitter_access_secret)
+
     real_token = oauth.Token(real_oauth_token, real_oauth_token_secret)
     real_client = oauth.Client(consumer, real_token)
     real_resp, real_content = real_client.request(show_user_url + '?user_id=' + user_id, "GET")
@@ -394,6 +412,44 @@ def callback():
 
 
     return redirect(url_for("settings"))
+
+
+@app.route('/authorize/tumblr', methods=['GET', 'POST'])
+def auth_tumblr():
+    t = Tumblpy(tumblr_consumer_key, tumblr_consumer_secret)
+
+    auth_props = t.get_authentication_tokens(callback_url= "http://localhost:5000/callbacktumblr")
+    auth_url = auth_props['auth_url']
+    global OAUTH_TOKEN_SECRET
+    OAUTH_TOKEN_SECRET = auth_props['oauth_token_secret']
+
+    return redirect(auth_url)
+
+@app.route('/callbacktumblr')
+def callback_tumblr():
+    # if checker, check if the user pressed YES, and then store the tokens received
+
+    oauth_token = request.args.get('oauth_token')
+    oauth_verifier = request.args.get('oauth_verifier')
+    t = Tumblpy(tumblr_consumer_key, tumblr_consumer_secret,
+            oauth_token, OAUTH_TOKEN_SECRET)
+    authorized_tokens = t.get_authorized_tokens(oauth_verifier)
+    # throw error if needed
+    final_oauth_token = authorized_tokens['oauth_token']
+    final_oauth_token_secret = authorized_tokens['oauth_token_secret']
+
+    global tumblr_access_token
+    global tumblr_access_secret
+    tumblr_access_token = final_oauth_token
+    tumblr_access_secret = final_oauth_token_secret
+
+    db.child(1234).child("settings").child("tumblr_boolean").set("True")
+
+
+    print(final_oauth_token)
+    print(final_oauth_token_secret)
+
+    return redirect(url_for('settings'))
 
 @app.route("/settings/twitter/disconnected")
 def tw_disconnected():
