@@ -335,6 +335,7 @@
             </article>
             {% else %}
               {% for tweet in tweets %}
+              <p> {{tweet}} </p>
               {% if tweet[0] == "twitter" %}
               <!-- if video, if image, if multiple images, if youtube url, if twitch stream -->
               <article class="timeline-entry">

@@ -203,7 +203,8 @@ OAUTH_TOKEN_SECRET = ""
 def generate_tumblr_dashboard(i):
     client = pytumblr.TumblrRestClient(tumblr_consumer_key,
         tumblr_consumer_secret, tumblr_access_token, tumblr_access_secret)
-    dash = client.dashboard()
+    dash = client.dashboard(limit=50)
+    print(len(dash['posts']))
     dashboard = [[] for x in range(i)]
     counter = 0
 
@@ -231,13 +232,15 @@ def generate_tumblr_dashboard(i):
         elif post['type'] == 'video':
             if counter == (i):
                 break
-            dashboard[counter] += ['video'] #keep track of what type
             dashboard[counter] += ['tumblr']
+            dashboard[counter] += ['video'] #keep track of what type
             dashboard[counter] += [post['blog_name']]
             dashboard[counter] += [formatTimeTumblr(post['date'])]
             dashboard[counter] += [post['post_url']]
             dashboard[counter] += [post['video_url']] #keep track of the info
             counter += 1
+    print(len(dashboard))
+    print(dashboard)
     return dashboard
 
 
