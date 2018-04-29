@@ -14,8 +14,10 @@ from datetime import datetime, date, timedelta
 from tumblpy import Tumblpy
 
 app = Flask(__name__)
+
+app.config.from_pyfile('config.cfg')
 config = {
-    "apiKey": "AIzaSyC9Lgc_qAajV-HzLR0Rjc38ZlZx6Yi4Srg",
+    "apiKey": app.config['APIKEY'],
     "authDomain": "cs411-webapp.firebaseapp.com",
     "databaseURL": "https://cs411-webapp.firebaseio.com",
     "storageBucket": "cs411-webapp.appspot.com"
@@ -44,8 +46,8 @@ def strip_tags(html):
 
 #twitter stuff
 #------------------------------------------------------
-twitter_consumer_key = 'WH3jhSuTMRA3ESj8xInLEsiLe'
-twitter_consumer_secret = 'c2hPnRpVbv8yudyepiPzZ9ihBbYw6EsnevNDqdi3XnSt3HZH51'
+twitter_consumer_key = app.config['TWITTER_CONSUMER_KEY']
+twitter_consumer_secret = app.config['TWITTER_CONSUMER_SECRET']
 #------------------------------------------------------
 request_token_url = 'https://twitter.com/oauth/request_token'
 access_token_url = 'https://twitter.com/oauth/access_token'
@@ -161,8 +163,8 @@ def searchApi(keyword):
 #                                                  #
 #---------------------------------------------------
 # CONFIG KEYS
-tumblr_consumer_key = "EjlO747baBilTHKKbtKEg51o336I6kI0TfCD6wH2EumepSok8d"
-tumblr_consumer_secret = "RWMh1eoWxu8tf6jinPUfucTTrmyJzsKGMZqjjrgQREvDPKsFc0"
+tumblr_consumer_key = app.config['TUMBLR_CONSUMER_KEY']
+tumblr_consumer_secret = app.config['TUMBLR_CONSUMER_SECRET']
 
 OAUTH_TOKEN_SECRET = ""
 
