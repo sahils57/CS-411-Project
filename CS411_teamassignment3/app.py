@@ -337,7 +337,6 @@ def user_input():
 @app.route('/authorize/twitter', methods=['GET', 'POST'])
 def auth_tw():
     consumer = oauth.Consumer(twitter_consumer_key, twitter_consumer_secret)
-    request_token_url = request_token_url
     client = oauth.Client(consumer)
 
     app_callback_url = url_for('callback', _external = True)
@@ -422,6 +421,7 @@ def auth_tumblr():
 
 @app.route('/callbacktumblr')
 def callback_tumblr():
+    oauth_token = request.args.get('oauth_token')
     oauth_verifier = request.args.get('oauth_verifier')
     t = Tumblpy(tumblr_consumer_key, tumblr_consumer_secret,
             oauth_token, OAUTH_TOKEN_SECRET)
