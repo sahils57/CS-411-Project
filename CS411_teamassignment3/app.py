@@ -46,25 +46,16 @@ def strip_tags(html):
 #------------------------------------------------------
 twitter_consumer_key = 'WH3jhSuTMRA3ESj8xInLEsiLe'
 twitter_consumer_secret = 'c2hPnRpVbv8yudyepiPzZ9ihBbYw6EsnevNDqdi3XnSt3HZH51'
-#------
+#------------------------------------------------------
 request_token_url = 'https://twitter.com/oauth/request_token'
 access_token_url = 'https://twitter.com/oauth/access_token'
 authorize_url = 'https://twitter.com/oauth/authorize'
 show_user_url = 'https://api.twitter.com/1.1/users/show.json'
-#------
+#------------------------------------------------------
 oauth_store = {}
-#-------------------------------------------------------
-#print(api.VerifyCredentials())
-#credentials = api.VerifyCredentials()
+#------------------------------------------------------
 
-#print(a[4].retweeted_status.user.screen_name)
-#below only includes non-retweets
-#home_timeline = [[i.full_text, i.user.screen_name, i.created_at, i.user.profile_image_url] for i in a if i.retweeted_status == None]
-#
-# text_file = open("output.txt", "w")
-# text_file.write(str(a[3]))
-# text_file.close()
-
+# Check to see if the tweet contains a youtube video
 def checkYoutubeTweet(x):
     yt_test = str(x.urls[0].expanded_url)
     yt_test = yt_test.split("/")
@@ -73,7 +64,7 @@ def checkYoutubeTweet(x):
     else:
         return False
 
-
+# Get a youtube URL from the url provided from twitter
 def generateYoutubeURL(x):         # from a json object
     yt_test = str(x.urls[0].expanded_url)
     yt_test = yt_test.split("/")
@@ -81,46 +72,22 @@ def generateYoutubeURL(x):         # from a json object
     yt_url = "https://www.youtube.com/embed/" + yt_url
     return yt_url
 
-    #
-    # def formatTime(twitter_date):
-    #     words = twitter_date.replace(':', ' ')
-    #     words = words.split()
-    #     words = [str(r) for r in words[1:]]
-    #     words.remove("+0000")
-    #     date = ' '.join(words)
-    #     final_date = time.strptime(date, "%b %d %H %M %S %Y")
-    #     print(final_date)
-    #     final_date = time.mktime(final_date)# time difference zones
-    #     current_time = time.time()
-    #     print(time.localtime(final_date))
-    #     print(time.localtime(current_time))
-    #     difference_time = current_time-final_date
-    #     return final_date
-
+# Format twitter date to match tumblr date
 def formatTimeTwitter(twitter_date):
-    #current_date = datetime.today()
-    #print(current_date)
     final_date = datetime.strptime(twitter_date, '%a %b %d %H:%M:%S +0000 %Y')
     fourhourdifference = final_date + timedelta(hours=-4)
-    #print(final_date)
-    #difference_date = current_date - final_date
-    #print(difference_date.seconds)
     return fourhourdifference
 
+# Format tumblr date to match twitter date
 def formatTimeTumblr(tumblr_date):
     final_date = datetime.strptime(tumblr_date, '%Y-%m-%d %H:%M:%S GMT')
     fourhourdifference = final_date + timedelta(hours=-4)
     return fourhourdifference
 
-#below includes the full text for retweets
+# Generates a list of i tweets
 def generateTweets(i):
-    #make applicable for multiple multimedia links, like image with youtube link in text
-    print(username)
     access_token = db.child(username).child("twitter").child("access_token").get().val()
     access_secret = db.child(username).child("twitter").child("access_secret").get().val()
-
-    print(access_token)
-    print(access_secret)
 
     api = twitter.Api(twitter_consumer_key, twitter_consumer_secret, access_token, access_secret, tweet_mode="extended")
 
@@ -171,7 +138,7 @@ def generateTweets(i):
                     timeline[z][1] = "re_photo"
                     timeline[z] += [a[z].retweeted_status.media[0].media_url_https]
 
-    # link in tweeet text
+    # link in tweet text
     for y in range(i):
         if timeline[y][1] == "none" or timeline[y][1] == "re_none":
             if a[y].urls != []:
@@ -183,7 +150,7 @@ def generateTweets(i):
                     timeline[y] += [a[y].urls[0].expanded_url]
     return timeline
 
-
+# For assignment 3, search our api results
 def searchApi(keyword):
     result = [[i.text, i.user.screen_name] for i in a if keyword.lower() in i.text.lower() or keyword.lower() in i.user.screen_name.lower()]
     return result
@@ -199,6 +166,7 @@ tumblr_consumer_secret = "RWMh1eoWxu8tf6jinPUfucTTrmyJzsKGMZqjjrgQREvDPKsFc0"
 
 OAUTH_TOKEN_SECRET = ""
 
+# Generates i tumblr posts
 def generate_tumblr_dashboard(i):
 
     access_token = db.child(username).child("tumblr").child("access_token").get().val()
@@ -207,7 +175,6 @@ def generate_tumblr_dashboard(i):
     client = pytumblr.TumblrRestClient(tumblr_consumer_key,
         tumblr_consumer_secret, access_token, access_secret)
     dash = client.dashboard(limit=50)
-    print(len(dash['posts']))
     dashboard = [[] for x in range(i)]
     counter = 0
 
@@ -242,12 +209,9 @@ def generate_tumblr_dashboard(i):
             dashboard[counter] += [post['post_url']]
             dashboard[counter] += [post['video_url']] #keep track of the info
             counter += 1
-    print(len(dashboard))
-    print(dashboard)
     return dashboard
 
-# possibly add time-based feed? maybe not
-# example of how an alternating feed could be generated
+# Generate a feed containing i items
 def generateFeed(i, twitter_bool, tumblr_bool):
     if twitter_bool == "True" and tumblr_bool == "True":
         feed = []
@@ -270,8 +234,7 @@ def generateFeed(i, twitter_bool, tumblr_bool):
     else:
         return []
 
-Articles = Articles()
-
+# Register a user in database
 def register_user(email, password):
     auth.create_user_with_email_and_password(email, password)
 
@@ -280,7 +243,7 @@ def register_user(email, password):
     }
     db.child("Users").push(data)
 
-
+# Check to see if user is in database
 def check_user(email):
     users = db.child("Users").get()
     if (users.val() == None):
@@ -310,7 +273,6 @@ def login_input():
         except Exception as e:
             return render_template('login.html', error = "wrong_pass")
 
-        #print(user)
         global username
         username = user['email'].replace(".", "")
         return redirect(url_for('home'))
@@ -330,7 +292,6 @@ def home():
         return render_template('login.html')
     else:
         status = [db.child(username).child("settings").child("twitter_boolean").get().val(), db.child(username).child("settings").child("tumblr_boolean").get().val()]
-        print(status)
         home_timeline = generateFeed(20, status[0], status[1])
         return render_template('home.html', tweets = home_timeline)
 
@@ -357,7 +318,6 @@ def settings():
     if username == "":
         return render_template('login.html')
     else:
-        #get twitter status and store in 2 length list
         status = [db.child(username).child("settings").child("twitter_boolean").get().val(), db.child(username).child("settings").child("tumblr_boolean").get().val()]
         return render_template('settings.html', status = status)
 
@@ -377,6 +337,7 @@ def user_input():
 @app.route('/authorize/twitter', methods=['GET', 'POST'])
 def auth_tw():
     consumer = oauth.Consumer(twitter_consumer_key, twitter_consumer_secret)
+    request_token_url = request_token_url
     client = oauth.Client(consumer)
 
     app_callback_url = url_for('callback', _external = True)
@@ -393,8 +354,7 @@ def auth_tw():
 
     oauth_store[oauth_token] = oauth_token_secret
 
-    return render_template('start.html', authorize_url=authorize_url, oauth_token = oauth_token,
-        request_token_url = request_token_url)
+    return render_template('start.html', authorize_url=authorize_url, oauth_token = oauth_token)
 
 
 @app.route('/callback')
@@ -427,11 +387,8 @@ def callback():
 
     user_id = access_token['user_id']
 
-
-    # add to database
     db.child(username).child("settings").child("twitter_boolean").set("True")
 
-    #SAVE THESE TOKENS !
     real_oauth_token = access_token['oauth_token']
     real_oauth_token_secret = access_token['oauth_token_secret']
 
@@ -465,14 +422,11 @@ def auth_tumblr():
 
 @app.route('/callbacktumblr')
 def callback_tumblr():
-    # if checker, check if the user pressed YES, and then store the tokens received
-
-    oauth_token = request.args.get('oauth_token')
     oauth_verifier = request.args.get('oauth_verifier')
     t = Tumblpy(tumblr_consumer_key, tumblr_consumer_secret,
             oauth_token, OAUTH_TOKEN_SECRET)
     authorized_tokens = t.get_authorized_tokens(oauth_verifier)
-    # throw error if needed
+
     final_oauth_token = authorized_tokens['oauth_token']
     final_oauth_token_secret = authorized_tokens['oauth_token_secret']
 
@@ -493,5 +447,6 @@ def tu_disconnected():
     db.child(username).child("settings").child("tumblr_boolean").set("False")
     return redirect(url_for("settings"))
 
+    oauth_token = request.args.get('oauth_token')
 if __name__ == '__main__':
     app.run(debug=True)
