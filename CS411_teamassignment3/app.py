@@ -1,5 +1,5 @@
 from __future__ import print_function
-from flask import Flask, render_template, request, redirect, flash, url_for
+from flask import Flask, render_template, request, redirect, flash, url_for, session
 import oauth2 as oauth
 import urlparse
 import urllib
@@ -12,7 +12,7 @@ import pytumblr
 from html.parser import HTMLParser
 from datetime import datetime, date, timedelta
 from tumblpy import Tumblpy
-#from flask_login import LoginManager
+from flask_login import LoginManager, UserMixin
 
 
 app = Flask(__name__)
@@ -24,6 +24,11 @@ config = {
 }
 firebase = pyrebase.initialize_app(config)
 db = firebase.database()
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+
 
 class MLStripper(HTMLParser):
     def __init__(self):
@@ -57,6 +62,7 @@ show_user_url = 'https://api.twitter.com/1.1/users/show.json'
 #------
 oauth_store = {}
 #-------------------------------------------------------
+
 #print(api.VerifyCredentials())
 #credentials = api.VerifyCredentials()
 
@@ -288,6 +294,9 @@ def createFakePerson(id, tw_bool, tu_bool):
     db.child(id).child("tumblr").child("access_secret").set("456")
 
 createFakePerson(1234, "False", "False")
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
 
 @app.route('/')
 def index():
@@ -431,6 +440,10 @@ def auth_tumblr():
 @app.route('/callbacktumblr')
 def callback_tumblr():
     # if checker, check if the user pressed YES, and then store the tokens received
+
+    url_after = request.url
+    if url_after == "http://localhost:5000/callbacktumblr":
+        return render_template('error.html', error_message = "OAuth request denied by this user")
 
     oauth_token = request.args.get('oauth_token')
     oauth_verifier = request.args.get('oauth_verifier')
