@@ -1,0 +1,24 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <div class="container col-4 text-center">
+    <h1 class="h1 mb-l font-weight-normal text-lg-center">Login</h1>
+      <form action="/echo" method="post">
+          <label for="inputEmail" class="sr-only">User name</label>
+          <input type="email" name="email" class="form-control" placeholder="Email"
+          required autofocus value="{{request.form.username}}">
+          <label for="inputPassword" class="sr-only">Password</label>
+          <input type="password" name="password" class="form-control" placeholder="Password"
+          required value="{{request.form.password}}">
+          <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+          <p class="mt-5 mb-3 text-muted">&copy; 2017-2018</p>
+          {% if error == "wrong_pass" %}
+          <p> WRONG PASSWORD </p>
+          {% elif error == "new_acc" %}
+          <p> Your account was created with those credentials, type it again to log in. </p>
+          {% elif error == "short_pass" %}
+          <p> Your account's password was too short, it must be at least 6 characters </p>
+          {% endif %}
+      </form>
+  </div>
+{% endblock %}

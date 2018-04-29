@@ -1,12 +1,23 @@
 {% extends 'layout.html' %}
 {% block body %}
 <h1> Twitter </h1>
+{% if status[0] == "False" %}
 <a href="/authorize/twitter" class="btn btn-lg btn-primary">Connect with Twitter</a>
+<a class="btn btn-lg btn-danger">Disconnect Twitter</a>
+
+{% else %}
+<a class="btn btn-lg btn-primary"> Twitter Connected </a>
 <a href="/settings/twitter/disconnected" class="btn btn-lg btn-danger">Disconnect Twitter</a>
+{% endif %}
 <p> Current status: {{status[0]}} </p>
 
 <h1> Tumblr </h1>
+{% if status[1] == "False" %}
 <a href="/authorize/tumblr" class="btn btn-lg btn-info">Connect with Tumblr</a>
+<a class="btn btn-lg btn-danger">Disconnect Tumblr</a>
+{% else %}
+<a class="btn btn-lg btn-info">Tumblr Connected</a>
 <a href="/settings/tumblr/disconnected" class="btn btn-lg btn-danger">Disconnect Tumblr</a>
+{% endif %}
 <p> Current status: {{status[1]}} </p>
 {% endblock %}

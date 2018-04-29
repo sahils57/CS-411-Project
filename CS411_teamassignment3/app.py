@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 from flask import Flask, render_template, request, redirect, flash, url_for
 import oauth2 as oauth
 import urlparse
@@ -12,8 +12,6 @@ import pytumblr
 from html.parser import HTMLParser
 from datetime import datetime, date, timedelta
 from tumblpy import Tumblpy
-#from flask_login import LoginManager
-
 
 app = Flask(__name__)
 config = {
@@ -24,6 +22,9 @@ config = {
 }
 firebase = pyrebase.initialize_app(config)
 db = firebase.database()
+auth = firebase.auth()
+
+username = ""
 
 class MLStripper(HTMLParser):
     def __init__(self):
@@ -45,10 +46,6 @@ def strip_tags(html):
 #------------------------------------------------------
 twitter_consumer_key = 'WH3jhSuTMRA3ESj8xInLEsiLe'
 twitter_consumer_secret = 'c2hPnRpVbv8yudyepiPzZ9ihBbYw6EsnevNDqdi3XnSt3HZH51'
-#twitter_access_token = '976927078489653248-86NxrrQxbrKcdat3Dlxpwaf1aK0euZQ'
-#twitter_access_secret = '3SP5HnQK4VX9D4OBnttCLXtHjQB5bOrvKY59zhTRHvMM6'
-twitter_access_token = ""
-twitter_access_secret = ""
 #------
 request_token_url = 'https://twitter.com/oauth/request_token'
 access_token_url = 'https://twitter.com/oauth/access_token'
@@ -59,8 +56,6 @@ oauth_store = {}
 #-------------------------------------------------------
 #print(api.VerifyCredentials())
 #credentials = api.VerifyCredentials()
-
-
 
 #print(a[4].retweeted_status.user.screen_name)
 #below only includes non-retweets
@@ -120,7 +115,14 @@ def formatTimeTumblr(tumblr_date):
 #below includes the full text for retweets
 def generateTweets(i):
     #make applicable for multiple multimedia links, like image with youtube link in text
-    api = twitter.Api(twitter_consumer_key, twitter_consumer_secret, twitter_access_token, twitter_access_secret, tweet_mode="extended")
+    print(username)
+    access_token = db.child(username).child("twitter").child("access_token").get().val()
+    access_secret = db.child(username).child("twitter").child("access_secret").get().val()
+
+    print(access_token)
+    print(access_secret)
+
+    api = twitter.Api(twitter_consumer_key, twitter_consumer_secret, access_token, access_secret, tweet_mode="extended")
 
     timeline = []
 
@@ -194,15 +196,16 @@ def searchApi(keyword):
 # CONFIG KEYS
 tumblr_consumer_key = "EjlO747baBilTHKKbtKEg51o336I6kI0TfCD6wH2EumepSok8d"
 tumblr_consumer_secret = "RWMh1eoWxu8tf6jinPUfucTTrmyJzsKGMZqjjrgQREvDPKsFc0"
-tumblr_access_token = ""
-tumblr_access_secret = ""
-#tumblr_access_token = "otjThytAozKKBOLFPoZbaqfo8HMtvTzciABrWR6uX0sj670f6E"
-#tumblr_access_secret = "Ye0VNDcGbSIG3D5hB6cGugafoWY1ryEQcszhygTdC2vVaoI8py"
+
 OAUTH_TOKEN_SECRET = ""
 
 def generate_tumblr_dashboard(i):
+
+    access_token = db.child(username).child("tumblr").child("access_token").get().val()
+    access_secret = db.child(username).child("tumblr").child("access_secret").get().val()
+
     client = pytumblr.TumblrRestClient(tumblr_consumer_key,
-        tumblr_consumer_secret, tumblr_access_token, tumblr_access_secret)
+        tumblr_consumer_secret, access_token, access_secret)
     dash = client.dashboard(limit=50)
     print(len(dash['posts']))
     dashboard = [[] for x in range(i)]
@@ -243,7 +246,6 @@ def generate_tumblr_dashboard(i):
     print(dashboard)
     return dashboard
 
-
 # possibly add time-based feed? maybe not
 # example of how an alternating feed could be generated
 def generateFeed(i, twitter_bool, tumblr_bool):
@@ -261,53 +263,90 @@ def generateFeed(i, twitter_bool, tumblr_bool):
                 feed += [tumblr_feed[-1]]
                 tumblr_feed.pop()
         return feed
-    elif twitter_bool == "True" and tumblr_bool == "False":
-        print("twitter access secret is " + twitter_access_secret)
-        print("twitter access token is " + twitter_access_token)
-
+    elif twitter_bool == "True" and tumblr_bool != "True":
         return generateTweets(i)
-    elif twitter_bool == "False" and tumblr_bool == "True":
+    elif twitter_bool != "True" and tumblr_bool == "True":
         return generate_tumblr_dashboard(i)
     else:
         return []
 
-
-
-
-
 Articles = Articles()
 
-def createFakePerson(id, tw_bool, tu_bool):
-    db.child(id).child("settings").child("tumblr_boolean").set(tu_bool)
-    db.child(id).child("settings").child("twitter_boolean").set(tw_bool)
+def register_user(email, password):
+    auth.create_user_with_email_and_password(email, password)
 
-    db.child(id).child("twitter").child("access_token").set("123")
-    db.child(id).child("twitter").child("access_secret").set("456")
+    data = {
+        "email": email
+    }
+    db.child("Users").push(data)
 
-    db.child(id).child("tumblr").child("access_token").set("123")
-    db.child(id).child("tumblr").child("access_secret").set("456")
 
-createFakePerson(1234, "False", "False")
+def check_user(email):
+    users = db.child("Users").get()
+    if (users.val() == None):
+        return False
+    for user in users.each():
+        if user.val().get('email') == email:
+            return True
+    return False
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    #return render_template('index.html')
-    return redirect(url_for('home'))
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    global username
+    username = ""
+    return render_template('login.html')
+
+@app.route('/echo',  methods=['POST'])
+def login_input():
+    email = request.form['email']
+    password = request.form['password']
+    if check_user(email):
+        try:
+            user = auth.sign_in_with_email_and_password(email, password)
+        except Exception as e:
+            return render_template('login.html', error = "wrong_pass")
+
+        #print(user)
+        global username
+        username = user['email'].replace(".", "")
+        return redirect(url_for('home'))
+    else:
+        try:
+            register_user(email, password)
+        except Exception as e:
+            return render_template('login.html', error = "short_pass")
+
+        db.child(email.replace(".", "")).child("settings").child("twitter_boolean").set("False")
+        db.child(email.replace(".", "")).child("settings").child("tumblr_boolean").set("False")
+        return render_template('login.html', error = "new_acc")
 
 @app.route('/home')
 def home():
-    status = [db.child("1234").child("settings").child("twitter_boolean").get().val(), db.child("1234").child("settings").child("tumblr_boolean").get().val()]
-    print(status)
-    home_timeline = generateFeed(20, status[0], status[1])
-    return render_template('home.html', tweets = home_timeline)
+    if username == "":
+        return render_template('login.html')
+    else:
+        status = [db.child(username).child("settings").child("twitter_boolean").get().val(), db.child(username).child("settings").child("tumblr_boolean").get().val()]
+        print(status)
+        home_timeline = generateFeed(20, status[0], status[1])
+        return render_template('home.html', tweets = home_timeline)
 
 @app.route('/about')
 def about():
-    return render_template('about.html')
+    if username == "":
+        return render_template('login.html')
+    else:
+        return render_template('about.html')
 
 @app.route('/articles')
 def articles():
-    return render_template('articles.html', articles=Articles)
+    if username == "":
+        return render_template('login.html')
+    else:
+        return render_template('articles.html', articles=Articles)
 
 @app.route('/article/<string:id>')
 def article(id):
@@ -315,9 +354,12 @@ def article(id):
 
 @app.route('/settings')
 def settings():
-    #get twitter status and store in 2 length list
-    status = [db.child("1234").child("settings").child("twitter_boolean").get().val(), db.child("1234").child("settings").child("tumblr_boolean").get().val()]
-    return render_template('settings.html', status = status)
+    if username == "":
+        return render_template('login.html')
+    else:
+        #get twitter status and store in 2 length list
+        status = [db.child(username).child("settings").child("twitter_boolean").get().val(), db.child(username).child("settings").child("tumblr_boolean").get().val()]
+        return render_template('settings.html', status = status)
 
 @app.route('/twitter/echo', methods=['POST'])
 def user_input():
@@ -387,21 +429,14 @@ def callback():
 
 
     # add to database
-    db.child(1234).child("settings").child("twitter_boolean").set("True")
+    db.child(username).child("settings").child("twitter_boolean").set("True")
 
     #SAVE THESE TOKENS !
     real_oauth_token = access_token['oauth_token']
     real_oauth_token_secret = access_token['oauth_token_secret']
 
-    global twitter_access_token
-    global twitter_access_secret
-    twitter_access_token = real_oauth_token
-    twitter_access_secret = real_oauth_token_secret
-
-    print(twitter_consumer_key)
-    print(twitter_consumer_secret)
-    print(twitter_access_token)
-    print(twitter_access_secret)
+    db.child(username).child("twitter").child("access_token").set(real_oauth_token)
+    db.child(username).child("twitter").child("access_secret").set(real_oauth_token_secret)
 
     real_token = oauth.Token(real_oauth_token, real_oauth_token_secret)
     real_client = oauth.Client(consumer, real_token)
@@ -441,27 +476,21 @@ def callback_tumblr():
     final_oauth_token = authorized_tokens['oauth_token']
     final_oauth_token_secret = authorized_tokens['oauth_token_secret']
 
-    global tumblr_access_token
-    global tumblr_access_secret
-    tumblr_access_token = final_oauth_token
-    tumblr_access_secret = final_oauth_token_secret
+    db.child(username).child("settings").child("tumblr_boolean").set("True")
 
-    db.child(1234).child("settings").child("tumblr_boolean").set("True")
-
-
-    print(final_oauth_token)
-    print(final_oauth_token_secret)
+    db.child(username).child("tumblr").child("access_token").set(final_oauth_token)
+    db.child(username).child("tumblr").child("access_secret").set(final_oauth_token_secret)
 
     return redirect(url_for('settings'))
 
 @app.route("/settings/twitter/disconnected")
 def tw_disconnected():
-    db.child(1234).child("settings").child("twitter_boolean").set("False")
+    db.child(username).child("settings").child("twitter_boolean").set("False")
     return redirect(url_for("settings"))
 
 @app.route("/settings/tumblr/disconnected")
 def tu_disconnected():
-    db.child(1234).child("settings").child("tumblr_boolean").set("False")
+    db.child(username).child("settings").child("tumblr_boolean").set("False")
     return redirect(url_for("settings"))
 
 if __name__ == '__main__':
